@@ -18,7 +18,7 @@ const sizes = {
     height: canvasBox.height
 }
 
-// Aspect Ratio
+// Aspect Ratio of the wrapper
 const aspectRatio = sizes.width / sizes.height;
 
 window.addEventListener('resize', () => {
@@ -53,16 +53,37 @@ let shaderMaterial = new THREE.ShaderMaterial({
 // Loader
 const textureLoader = new THREE.TextureLoader()
 
-textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/6529b534422fddacbfac9709_img-v1-bw.jpg', (texture) => {
+// textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/6529b534422fddacbfac9709_img-v1-bw.jpg', (texture) => {
 // textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/65299343818b1d4d5ce9405c_img-v1.jpg', (texture) => {
+// textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/652b45279c1f4e8c4121b535_img-v3.jpg', (texture) => {
+textureLoader.load('  https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/652b45b529f6f7d9d285744b_img-v4.jpg', (texture) => {
+  
+    // let geometry;
+
+    // // Aspect Ratio
+    // const aspectRatio = sizes.width / sizes.height;
+
+    // // Get the aspect ratio of the image texture
+    // const imageAspect = texture.image.width / texture.image.height;
+        
+    // // Adjust the size of the PlaneGeometry to match the aspect ratio of the image
+    // geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
+
+    let geometry;
 
     // Get the aspect ratio of the image texture
     const imageAspect = texture.image.width / texture.image.height;
-    
-    let geometry;
-    
-    // Adjust the size of the PlaneGeometry to match the aspect ratio of the image
-    geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
+
+    // Determine which aspect ratio is larger
+    if (aspectRatio > imageAspect) {
+        // If the aspect ratio of the wrapper is wider than the imageAspect
+        const width = 2 * (aspectRatio / imageAspect);
+        const height = 2;
+        geometry = new THREE.PlaneGeometry(2, height);
+    } else {
+        // else, set the PlaneGeometry size to match the aspect ratio of the image
+        geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
+    }
 
     shaderMaterial = new THREE.ShaderMaterial({
         vertexShader: vertexShader,
@@ -71,7 +92,9 @@ textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/652
             uTime: { value: 0.0 },
             uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
             uTexture: {value: texture}, // Pass the loaded texture to the shader
-            uTint: { value: new THREE.Vector3(76/255, 76/255, 229/255) },  // Convert RGB to [0, 1] range
+            uTint: { value: new THREE.Vector3(55/255, 255/255, 0/255) },  // Convert RGB to [0, 1] range
+            uSpeed: { value: 0.25 },
+            uSpan: { value: 8.0 },
 
         }
     })
