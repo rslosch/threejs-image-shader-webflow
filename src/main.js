@@ -1,134 +1,122 @@
 import './styles/style.css'
-import * as THREE from 'three'
-import vertexShader from './shaders/vertex.glsl'
-import fragmentShader from './shaders/fragment.glsl'
+import * as THREE from 'three';
+import vertexShader from './shaders/vertex.glsl';
+import fragmentShaderv1 from './shaders/fragment.glsl';
+import fragmentShaderv2 from './shaders/fragmentv2.glsl';
+import fragmentShaderv3 from './shaders/fragmentv3.glsl';
 
-// Canvas
-const canvas = document.querySelector('.webgl')
+console.log("Hello from main.js");
 
-// Scene
-const scene = new THREE.Scene()
+// Iterate through all cards
+const cardWrappers = document.querySelectorAll('.card_wrapper');
 
-//getBoundingClientRect of canvas parent element
-let canvasBox = document.querySelector(".card_wrapper").getBoundingClientRect()
+cardWrappers.forEach((cardWrapper) => {
+    // Canvas
+    const canvas = cardWrapper.querySelector('.webgl');
 
-// Sizes
-const sizes = {
-    width: canvasBox.width,
-    height: canvasBox.height
-}
+    // Initialize Three.js scene
+    const scene = new THREE.Scene();
 
-// Aspect Ratio of the wrapper
-const aspectRatio = sizes.width / sizes.height;
+    // Extract canvas size and aspect ratio
+    let canvasBox = cardWrapper.getBoundingClientRect();
+    const sizes = {
+        width: canvasBox.width,
+        height: canvasBox.height
+    };
+    const aspectRatio = sizes.width / sizes.height;
 
-window.addEventListener('resize', () => {
-    // Update sizes
-    sizes.width = canvasBox.width
-    sizes.height = canvasBox.height
+    // Initialize Orthographic camera
+    const camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 1000);
+    camera.position.z = 1;
+    scene.add(camera);
 
-    // Update camera
-    camera.aspect = sizes.width / sizes.height
-    camera.updateProjectionMatrix()
+    // Initialize WebGL Renderer
+    const renderer = new THREE.WebGLRenderer({
+        canvas: canvas
+    });
+    renderer.setSize(sizes.width, sizes.height);
 
-    // Update renderer
-    renderer.setSize(sizes.width, sizes.height)
-})
+    // Extract background color
+    const cardShaderElement = cardWrapper.querySelector('.card_shader');
+    const computedStyle = window.getComputedStyle(cardShaderElement);
+    const backgroundColor = computedStyle.backgroundColor;
 
-// Camera
-const camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1, 0.1, 1000)
-camera.position.z = 1
-scene.add(camera)
+    // Function to extract RGB from string
+    function extractRGB(color) {
+        const regex = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/;
+        const match = color.match(regex);
 
-// Shader Material
-let shaderMaterial = new THREE.ShaderMaterial({
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    uniforms: {
-        uTexture: { value: null },  // Texture will be set later
-        uTint: { value: new THREE.Vector3(76/255, 76/255, 229/255) },
-        uTime: { value: 0.0 }
-    }
-});
-
-// Loader
-const textureLoader = new THREE.TextureLoader()
-
-// textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/6529b534422fddacbfac9709_img-v1-bw.jpg', (texture) => {
-// textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/65299343818b1d4d5ce9405c_img-v1.jpg', (texture) => {
-// textureLoader.load('https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/652b45279c1f4e8c4121b535_img-v3.jpg', (texture) => {
-textureLoader.load('  https://uploads-ssl.webflow.com/65297f96bc3e2514c0eb1391/652b45b529f6f7d9d285744b_img-v4.jpg', (texture) => {
-  
-    // let geometry;
-
-    // // Aspect Ratio
-    // const aspectRatio = sizes.width / sizes.height;
-
-    // // Get the aspect ratio of the image texture
-    // const imageAspect = texture.image.width / texture.image.height;
-        
-    // // Adjust the size of the PlaneGeometry to match the aspect ratio of the image
-    // geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
-
-    let geometry;
-
-    // Get the aspect ratio of the image texture
-    const imageAspect = texture.image.width / texture.image.height;
-
-    // Determine which aspect ratio is larger
-    if (aspectRatio > imageAspect) {
-        // If the aspect ratio of the wrapper is wider than the imageAspect
-        const width = 2 * (aspectRatio / imageAspect);
-        const height = 2;
-        geometry = new THREE.PlaneGeometry(2, height);
-    } else {
-        // else, set the PlaneGeometry size to match the aspect ratio of the image
-        geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
-    }
-
-    shaderMaterial = new THREE.ShaderMaterial({
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-        uniforms: {
-            uTime: { value: 0.0 },
-            uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
-            uTexture: {value: texture}, // Pass the loaded texture to the shader
-            uTint: { value: new THREE.Vector3(55/255, 255/255, 0/255) },  // Convert RGB to [0, 1] range
-            uSpeed: { value: 0.25 },
-            uSpan: { value: 8.0 },
-
+        if (match) {
+            return {
+                r: parseInt(match[1], 10),
+                g: parseInt(match[2], 10),
+                b: parseInt(match[3], 10)
+            };
+        } else {
+            return null;
         }
-    })
-    
-    // Create and add the mesh to the scene
-    const mesh = new THREE.Mesh(geometry, shaderMaterial);
-    scene.add(mesh);
-    
-    // Re-render the scene after the texture is loaded
-    renderer.render(scene, camera);
+    }
+
+    const rgbValues = extractRGB(backgroundColor);
+    let r, g, b;
+    if (rgbValues) {
+        ({ r, g, b } = rgbValues);
+    }
+
+    // Extract image texture URL
+    const cardShaderImgElement = cardWrapper.querySelector('.card_shader-img');
+    const url = cardShaderImgElement.getAttribute('src');
+
+    // INITIALIZE Shader material with uniform properties
+    let shaderMaterial = new THREE.ShaderMaterial({
+        vertexShader: null,
+        fragmentShader: null,
+        uniforms: {
+            uTexture: { value: null },
+            uTint: { value: null },
+            uTime: { value: 0.0 }
+        }
+    });
+
+    // Load the texture
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(url, (texture) => {
+
+        
+        // Get the aspect ratio of the image texture
+        const imageAspect = texture.image.width / texture.image.height;
+        
+        let geometry;
+        if (aspectRatio > imageAspect) {
+            geometry = new THREE.PlaneGeometry(2 * aspectRatio, 2);
+        } else {
+            geometry = new THREE.PlaneGeometry(2 * imageAspect, 2);
+        }
+
+        shaderMaterial = new THREE.ShaderMaterial({
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShaderv2,
+            uniforms: {
+                uTime: { value: 0.0 },
+                uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
+                uTexture: { value: texture },
+                uTint: { value: new THREE.Vector3(r / 255, g / 255, b / 255) }
+            }
+        });
+
+        const mesh = new THREE.Mesh(geometry, shaderMaterial);
+        scene.add(mesh);
+
+        renderer.render(scene, camera);
+    });
+
+    // Animation
+    const clock = new THREE.Clock();
+    const animate = () => {
+        requestAnimationFrame(animate);
+        const elapsedTime = clock.getElapsedTime();
+        shaderMaterial.uniforms.uTime.value = elapsedTime;
+        renderer.render(scene, camera);
+    };
+    animate();
 });
-
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({
-    canvas: canvas
-})
-renderer.setSize(sizes.width, sizes.height)
-renderer.render(scene, camera)
-
-// Create a clock to keep track of the elapsed time
-const clock = new THREE.Clock();
-
-// Animation
-const animate = () => {
-    requestAnimationFrame(animate)
-
-     // Get the elapsed time
-     const elapsedTime = clock.getElapsedTime();
-
-     // Update the uTime uniform in the shader material
-     shaderMaterial.uniforms.uTime.value = elapsedTime;
-
-    renderer.render(scene, camera)
-}
-animate()
-
