@@ -76,10 +76,16 @@ cardWrappers.forEach((cardWrapper) => {
         vertexShader: null,
         fragmentShader: null,
         uniforms: {
-            uTexture: { value: null },
-            uTint: { value: null },
             uTime: { value: 0.0 },
-            uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) } 
+            uTexture: { value: null },
+            uTextureSize: { value: new THREE.Vector2(sizes.width, sizes.height) },
+            uTint: { value: null },
+            uResolution: { value: new THREE.Vector2(sizes.width, sizes.height)},
+            uCenter: { value: new THREE.Vector2(-1, -1) }, // Initialize to a default value
+            uBoundsMax: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+            uBoundsMin: { value: new THREE.Vector2(0, 0) }
+
+
         }
     });
 
@@ -103,11 +109,17 @@ cardWrappers.forEach((cardWrapper) => {
             fragmentShader: fragmentShaderv6,
             uniforms: {
                 uTime: { value: 0.0 },
-                uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
                 uTexture: { value: texture },
-                uTint: { value: new THREE.Vector3(r / 255, g / 255, b / 255) }
+                uTextureSize: { value: new THREE.Vector2(sizes.width, sizes.height) },
+                uTint: { value: new THREE.Vector3(r / 255, g / 255, b / 255)},
+                uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },
+                uCenter: { value: new THREE.Vector2(-1, -1) }, // Initialize to a default value
+                uBoundsMax: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+                uBoundsMin: { value: new THREE.Vector2(0, 0) }
             }
         });
+
+        cardWrapper.shaderMaterial = shaderMaterial;  // Store it here for access in onMouseEnter and onMouseLeave
 
         const mesh = new THREE.Mesh(geometry, shaderMaterial);
         scene.add(mesh);
@@ -115,12 +127,33 @@ cardWrappers.forEach((cardWrapper) => {
         renderer.render(scene, camera);
     });
 
+    window.addEventListener('mousemove', onMouseMove);
+
+    let xMouse = 0;
+    let yMouse = 0;
+
+    function onMouseMove(event) {
+        xMouse = event.clientX;
+        yMouse = event.clientY;
+        updateUniforms();
+    }
+
+    function updateUniforms() {
+        cardWrappers.forEach((cardWrapper) => {
+            const shaderMaterial = cardWrapper.shaderMaterial;
+            if (shaderMaterial) {
+                shaderMaterial.uniforms.uCenter.value = new THREE.Vector2(xMouse, yMouse);
+            }
+        });
+    }
+
     // Animation
     const clock = new THREE.Clock();
     const animate = () => {
         requestAnimationFrame(animate);
         const elapsedTime = clock.getElapsedTime();
         shaderMaterial.uniforms.uTime.value = elapsedTime;
+        // shaderMaterial.uniforms.uCenter.value = new THREE.Vector2(xMouse, yMouse);
         renderer.render(scene, camera);
     };
     animate();
