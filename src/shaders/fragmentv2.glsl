@@ -17,7 +17,7 @@ void main(){
 
     // Create a spatial sine wave based on time and UV coordinates
     float freq = 1.0;
-    float amp = 1.5;
+    float amp = 1.25;
     float direction = -vUv.x * vUv.y;
     float wave = 1. + abs(sin((uTime/2.0 + (direction) * 3.141516) * freq) * amp);
 
@@ -32,10 +32,11 @@ void main(){
     vec3 brightnessWeight = vec3(0.25);
     vec3 brightColor = texColor.rgb * brightnessWeight;
     // Increase saturation
-    vec3 saturatedColor = mix(tintedLuminance, brightColor, 0.5);
+    vec3 saturatedColor = mix(tintedLuminance, brightColor, 0.75);
     vec3 finalColor = mix(texColor.rgb, saturatedColor, modulatedWave);    
     // Mix the original color with the glow color based on the modulated wave 
 
     gl_FragColor = vec4(finalColor, 1.0);
+    // gl_FragColor = vec4(modulatedWave, 1.0)
 
 }

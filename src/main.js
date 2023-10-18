@@ -1,11 +1,15 @@
 import './styles/style.css'
 import * as THREE from 'three';
 import vertexShader from './shaders/vertex.glsl';
+import vertexShaderv6 from './shaders/vertexv6.glsl';
 import fragmentShaderv1 from './shaders/fragment.glsl';
 import fragmentShaderv2 from './shaders/fragmentv2.glsl';
 import fragmentShaderv3 from './shaders/fragmentv3.glsl';
+import fragmentShaderv4 from './shaders/fragmentv4.glsl';
+import fragmentShaderv5 from './shaders/fragmentv5.glsl';
+import fragmentShaderv6 from './shaders/fragmentv6.glsl';
 
-console.log("Hello from main.js");
+
 
 // Iterate through all cards
 const cardWrappers = document.querySelectorAll('.card_wrapper');
@@ -74,7 +78,8 @@ cardWrappers.forEach((cardWrapper) => {
         uniforms: {
             uTexture: { value: null },
             uTint: { value: null },
-            uTime: { value: 0.0 }
+            uTime: { value: 0.0 },
+            uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) } 
         }
     });
 
@@ -94,8 +99,8 @@ cardWrappers.forEach((cardWrapper) => {
         }
 
         shaderMaterial = new THREE.ShaderMaterial({
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShaderv2,
+            vertexShader: vertexShaderv6,
+            fragmentShader: fragmentShaderv6,
             uniforms: {
                 uTime: { value: 0.0 },
                 uResolution: { value: new THREE.Vector2(sizes.width, sizes.height) },

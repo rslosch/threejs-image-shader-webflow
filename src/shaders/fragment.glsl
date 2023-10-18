@@ -22,7 +22,7 @@ void main(){
     float amp = 0.1;
     for(int i = 0; i < 10; ++i) {  // 10 iterations, adjust as needed
         float direction = -vUv.x * vUv.y * float(i) * 0.1;  // Modify direction based on iteration
-        wave += abs(sin((uTime/1.25 + direction * 3.141516) * freq) * amp) * (1.0 - luminance);
+        wave += abs(sin((uTime/3.0 + direction * 3.141516) * freq) * amp) * (1.0 - luminance);
     }
 
     // // Modulate the wave based on luminance
